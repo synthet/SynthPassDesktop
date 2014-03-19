@@ -10,7 +10,7 @@ public class SynthPassDesktop extends Applet {
 
     private final PassGenerator passGenerator = new PassGenerator();
     private volatile String resultString = "password";
-    private String masterPassword = "123";
+    private String masterPassword = "1234";
     private String domainName;
 
     public void paint (Graphics g) {
