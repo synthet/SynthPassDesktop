@@ -16,15 +16,12 @@ package ru.synthet.synthpass;
  */
 import iaik.sha3.IAIKSHA3Provider;
 
-import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.Security;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class PassGenerator {
-
-    private final String TAG = getClass().getName();
 
     private final static String baseUpperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private final static String baseLowerCase = "abcdefghijklmnopqrstuvwxyz";
@@ -102,22 +99,6 @@ class PassGenerator {
             return "";
     }
 
-// --Commented out by Inspection START (07.10.13 15:05):
-//    protected String generate(String inputString, String domain) {
-//        inputString = inputString + domain;
-//        return encryptAndValidate(inputString);
-//    }
-// --Commented out by Inspection STOP (07.10.13 15:05)
-
-    private String encryptAndValidate(String inputString) {
-        String encrypted;
-        do {
-            encrypted = encrypt(inputString, PassRules.generatedPasswordLength);
-            inputString += '.';
-        } while (!validate(encrypted));
-        return encrypted;
-    }
-
     boolean validate(String inputString) {
         Matcher matcher;
         if (PassRules.noConsecutiveCharacters) {
@@ -137,50 +118,6 @@ class PassGenerator {
         if ((PassRules.requireSpecialSymbols) && !(matcher.find())) return false;
         if (!(PassRules.requireSpecialSymbols) && (matcher.find())) return false;
         return true;
-    }
-
-    /*
-    public static double calculateShannonEntropy(String inputString) {
-        Map<Character, Integer> map = new HashMap<Character, Integer>();
-        // count the occurrences of each value
-        for (int i=0;i<inputString.length();i++) {
-            Character sequence = inputString.charAt(i);
-            if (!map.containsKey(sequence)) {
-                map.put(sequence, 0);
-            }
-            map.put(sequence, map.get(sequence) + 1);
-        }
-        // calculate the entropy
-        Double result = 0.0;
-        for (Character sequence : map.keySet()) {
-            Double frequency = (double) map.get(sequence) / inputString.length();
-            result -= frequency * (Math.log(frequency) / Math.log(2));
-        }
-
-        return result;
-    }
-    */
-
-    String getShakedString(Float entropy[]) {
-        ByteBuffer buf = ByteBuffer.allocate(entropy.length*4);
-        for (Float anEntropy : entropy) {
-            buf.putFloat(anEntropy);
-        }
-        byte[] entropyBytes = buf.array();
-        entropyBytes = hash(entropyBytes);
-        String returnString;
-        String str = "";
-        int num = 0;
-        char chr = 0;
-        for (int i=0; i < entropy.length; i++) {
-            // some black magic
-            num = (3*i + 5*num + 7*chr)%entropyBytes.length;
-            str = getSymbol(entropyBytes[num] & 0xFF);
-            if (str.length() > 0)
-                chr = str.charAt(0);
-        }
-        returnString = str;
-        return returnString;
     }
 
     private byte[] hash(String inputString) {

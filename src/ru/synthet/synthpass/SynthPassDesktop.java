@@ -17,32 +17,48 @@ package ru.synthet.synthpass;
 import javax.swing.*;
 import java.awt.*;
 
-public class SynthPassDesktop extends JApplet {
+public class SynthPassDesktop extends JFrame {
 
-    private final PassGenerator passGenerator = new PassGenerator();
-    private volatile String resultString = "password";
-    private String masterPassword = "12345";
+    private PassGenerator passGenerator = new PassGenerator();
+    private String resultString = "password";
+    private String masterPassword = "1234";
     private String domainName = "";
 
-    public void init() {
-        //Execute a job on the event-dispatching thread:
-        //creating this applet's GUI.
-        try {
-            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    createGUI();
-                }
-            });
-        } catch (Exception e) {
-            System.err.println("createGUI didn't successfully complete");
-        }
+    private JPanel jpnlMain = new JPanel(new BorderLayout());
+    private JPanel jpnlBoutton = new JPanel(new GridLayout(5,5));
+    private JPanel jpnlLogo = new JPanel();
+    private JButton[] jbtnAllo = new JButton[10];
+
+    public static void main(String[] args) {
+
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                SynthPassDesktop ex = new SynthPassDesktop();
+                ex.setVisible(true);
+
+            }
+        });
+
     }
 
-    public void createGUI () {
-        JLabel label = new JLabel(gen());
-        label.setHorizontalAlignment(JLabel.CENTER);
-        label.setBorder(BorderFactory.createMatteBorder(1,1,1,1, Color.black));
-        getContentPane().add(label, BorderLayout.CENTER);
+    public SynthPassDesktop()  {
+
+        setTitle("Simple example");
+        setSize(300, 200);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        this.add(jpnlMain);
+        for(int i =0;i<jbtnAllo.length;i++){
+            masterPassword = String.valueOf(i);
+            jbtnAllo[i] = new JButton();
+            jbtnAllo[i].setText(gen());
+
+            jpnlBoutton.add(jbtnAllo[i]);
+        }
+        jpnlMain.add(jpnlBoutton,"North");
+        jpnlMain.add(jpnlLogo, "Center");
     }
 
     private String gen() {
@@ -51,9 +67,7 @@ public class SynthPassDesktop extends JApplet {
             resultString = passGenerator.synthEncrypt(inputString,
                     PassGenerator.PassRules.generatedPasswordLength);
             inputString = resultString;
-            //if (generationThread.isInterrupted()) {
-            //    break;
-            //}
+
         } while (!passGenerator.validate(resultString));
         return resultString;
     }

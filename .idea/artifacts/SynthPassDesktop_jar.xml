@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="SynthPassDesktop:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/SynthPassDesktop_jar</output-path>
+    <root id="archive" name="SynthPassDesktop.jar">
+      <element id="module-output" name="SynthPassDesktop" />
+    </root>
+  </artifact>
+</component>
