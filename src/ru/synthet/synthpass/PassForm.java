@@ -31,8 +31,6 @@ public class PassForm extends JFrame {
     private char[] masterPassword;
     private char[] domainName;
 
-    private int iter = 0;
-
     public PassForm() {
         super("SynthPass");
 
@@ -40,34 +38,40 @@ public class PassForm extends JFrame {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         pack();
         setLocationRelativeTo(null);
-        //centreWindow(this);
 
         genButton.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent e) {
-                masterPassword = passField.getPassword();
-                domainName = domainField.getText().toCharArray();
-                passLabel.setText(gen());
+                click();
             }
         });
 
-        PassGenerator.PassRules.generatedPasswordLength = 16;
+        domainField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                click();
+            }
+        });
 
     }
 
+    private void click() {
+        PassGenerator.PassRules.generatedPasswordLength = passlenSlider.getValue();
+
+        masterPassword = passField.getPassword();
+        domainName = domainField.getText().toCharArray();
+        passLabel.setText(gen());
+    }
 
     private String gen() {
-        iter = 0;
         char[] resultArray;
         do {
-            iter++;
             resultArray = passGenerator.synthEncrypt(masterPassword, domainName,
                     PassGenerator.PassRules.generatedPasswordLength);
             masterPassword = resultArray;
             domainName = "".toCharArray();
         } while (!passGenerator.validate(resultArray));
         resultString = String.copyValueOf(resultArray);
-        return resultString + " |" + String.valueOf(iter);
+        return resultString;
     }
 }
