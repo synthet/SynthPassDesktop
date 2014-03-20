@@ -73,7 +73,7 @@ class PassGenerator {
 
     static class PassRules {
         public static int generatedPasswordLength     = 12;
-        public static final String availableSymbols         = "!#$%&()*,-.";
+        public static final String availableSymbols   = "!#$%&()*,-.";
         public static boolean requireUppercaseLetters = true;
         public static boolean requireLowercaseLetters = true;
         public static boolean requireDigits           = true;

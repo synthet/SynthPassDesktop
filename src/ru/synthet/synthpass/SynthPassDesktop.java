@@ -15,61 +15,22 @@ package ru.synthet.synthpass;
  * limitations under the License.
  */
 import javax.swing.*;
-import java.awt.*;
 
-public class SynthPassDesktop extends JFrame {
-
-    private PassGenerator passGenerator = new PassGenerator();
-    private String resultString = "password";
-    private String masterPassword = "1234";
-    private String domainName = "";
-
-    private JPanel jpnlMain = new JPanel(new BorderLayout());
-    private JPanel jpnlBoutton = new JPanel(new GridLayout(5,5));
-    private JPanel jpnlLogo = new JPanel();
-    private JButton[] jbtnAllo = new JButton[10];
+public class SynthPassDesktop {
 
     public static void main(String[] args) {
-
         SwingUtilities.invokeLater(new Runnable() {
-            @Override
             public void run() {
-                SynthPassDesktop ex = new SynthPassDesktop();
-                ex.setVisible(true);
-
+                createAndShowGUI();
             }
         });
 
     }
 
-    public SynthPassDesktop()  {
-
-        setTitle("Simple example");
-        setSize(300, 200);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-
-        this.add(jpnlMain);
-        for(int i =0;i<jbtnAllo.length;i++){
-            masterPassword = String.valueOf(i);
-            jbtnAllo[i] = new JButton();
-            jbtnAllo[i].setText(gen());
-
-            jpnlBoutton.add(jbtnAllo[i]);
-        }
-        jpnlMain.add(jpnlBoutton,"North");
-        jpnlMain.add(jpnlLogo, "Center");
+    private static void createAndShowGUI() {
+        PassForm pf = new PassForm();
+        pf.setVisible(true);
     }
 
-    private String gen() {
-        String inputString = masterPassword + domainName;
-        do {
-            resultString = passGenerator.synthEncrypt(inputString,
-                    PassGenerator.PassRules.generatedPasswordLength);
-            inputString = resultString;
-
-        } while (!passGenerator.validate(resultString));
-        return resultString;
-    }
 
 }
