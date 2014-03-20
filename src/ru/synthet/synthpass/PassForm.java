@@ -24,6 +24,7 @@ public class PassForm extends JFrame {
     private JButton genButton;
     private JPanel rootPanel;
     private JLabel passLabel;
+    private JSlider passlenSlider;
 
     private final PassGenerator passGenerator = new PassGenerator();
     private String resultString = "password";
@@ -58,15 +59,15 @@ public class PassForm extends JFrame {
 
     private String gen() {
         iter = 0;
+        char[] resultArray;
         do {
             iter++;
-            char[] resultArray = passGenerator.synthEncrypt(masterPassword, domainName,
+            resultArray = passGenerator.synthEncrypt(masterPassword, domainName,
                     PassGenerator.PassRules.generatedPasswordLength);
             masterPassword = resultArray;
             domainName = "".toCharArray();
-            resultString = String.copyValueOf(resultArray);
-
-        } while (!passGenerator.validate(resultString));
+        } while (!passGenerator.validate(resultArray));
+        resultString = String.copyValueOf(resultArray);
         return resultString + " |" + String.valueOf(iter);
     }
 }

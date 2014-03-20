@@ -102,7 +102,8 @@ class PassGenerator {
             return '\0';
     }
 
-    boolean validate(String inputString) {
+    boolean validate(char[] inputChars) {
+        CharSequence inputString = CharBuffer.wrap(inputChars);
         Matcher matcher;
         if (PassRules.noConsecutiveCharacters) {
             matcher = noConsecutiveCharactersPattern.matcher(inputString);
