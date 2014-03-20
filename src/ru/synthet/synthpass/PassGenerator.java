@@ -16,8 +16,12 @@ package ru.synthet.synthpass;
  */
 import iaik.sha3.IAIKSHA3Provider;
 
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.Security;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,8 +37,7 @@ class PassGenerator {
     private final Pattern requireDigitsPattern;
     private final Pattern requireSpecialSymbolsPattern;
     private final char[] symbolsArr;
-    private final int symbolsLength;
-    public static String algorithm = "vpass3";
+    //private final int symbolsLength;
 
     PassGenerator() {
         super();
@@ -44,14 +47,14 @@ class PassGenerator {
         try {
             sha512 = MessageDigest.getInstance("KECCAK512", "IAIK_SHA3");
         } catch (Exception ex) {
-            //Log.e(TAG, "Error", ex);
+            ex.printStackTrace();
         }
         // prepare all available letters, digits, symbols
         String baseSymbols = baseUpperCase + baseLowerCase + baseDigits;
         String symbols = baseSymbols + PassRules.availableSymbols;
         // convert available letters, digits, symbols into array
         symbolsArr = symbols.toCharArray();
-        symbolsLength = symbolsArr.length;
+        //symbolsLength = symbolsArr.length;
         // init and compile regexp patterns
         noConsecutiveCharactersPattern = Pattern.compile("(.)\\1");
         requireUppercaseLetters        = Pattern.compile("[A-Z]");
@@ -81,7 +84,7 @@ class PassGenerator {
         public static final boolean noConsecutiveCharacters = true;
     }
 
-    String getSymbol(int num) {
+    char getSymbol(int num) {
         String base = "";
         if (PassRules.requireSpecialSymbols)
             base += PassRules.availableSymbols;
@@ -94,9 +97,9 @@ class PassGenerator {
         char[] baseArr = base.toCharArray();
         int baseLen = baseArr.length;
         if (baseLen > 0)
-            return Character.toString(baseArr[num % baseLen]);
+            return baseArr[num % baseLen];
         else
-            return "";
+            return '\0';
     }
 
     boolean validate(String inputString) {
@@ -120,80 +123,57 @@ class PassGenerator {
         return true;
     }
 
-    private byte[] hash(String inputString) {
+    private byte[] hash(byte[] inputString) {
         byte[] inputHashArr = new byte[]{};
         sha512.reset();
         try {
-            inputHashArr = sha512.digest(inputString.getBytes("UTF-8"));
+            inputHashArr = sha512.digest(inputString);
         } catch (Exception ex) {
-            //Log.e(TAG, "Error", ex);
+            ex.printStackTrace();
         }
         return inputHashArr;
     }
 
-    private byte[] hash(byte[] inputBytes) {
-        byte[] inputHashArr = new byte[]{};
-        sha512.reset();
-        try {
-            inputHashArr = sha512.digest(inputBytes);
-        } catch (Exception ex) {
-            //Log.e(TAG, "Error", ex);
-        }
-        return inputHashArr;
+    private byte[] toBytes(char[] chars) {
+        CharBuffer charBuffer = CharBuffer.wrap(chars);
+        ByteBuffer byteBuffer = Charset.forName("UTF-8").encode(charBuffer);
+        byte[] bytes = Arrays.copyOfRange(byteBuffer.array(),
+                byteBuffer.position(), byteBuffer.limit());
+        Arrays.fill(charBuffer.array(), '\u0000'); // clear sensitive data
+        Arrays.fill(byteBuffer.array(), (byte) 0); // clear sensitive data
+        return bytes;
     }
 
-    String synthEncrypt(String inputString, int requiredLength) {
-        byte[] inputHashArr = hash(inputString);
-        String returnString = "";
+    private char[] concatCharArray(char[] A, char[] B) {
+        int aLen = A.length;
+        int bLen = B.length;
+        char[] C = new char[aLen+bLen];
+        System.arraycopy(A, 0, C, 0, aLen);
+        System.arraycopy(B, 0, C, aLen, bLen);
+        return C;
+    }
+
+    char[] synthEncrypt(char[] masterPassword, char[] domainName, int requiredLength) {
+        char[] inputString = concatCharArray(masterPassword, domainName);
+        byte[] inputHashArr = hash(toBytes(inputString));
+        char[] returnString = new char[requiredLength];
         int num = 0;
         int numOld = 0;
-        for (int i=0;returnString.length() != requiredLength; i++) {
-            num = (i + inputString.length() + num)%inputHashArr.length;
-            String chr = getSymbol(inputHashArr[num] & 0xFF);
+        for (int i=0, j=0; j < requiredLength; i++) {
+            num = (i + inputString.length + num)%inputHashArr.length;
+            char chr = getSymbol(inputHashArr[num] & 0xFF);
             if ((i > 0) && (num == numOld)) {
                 continue;
             }
-            if ((i > 0) && (returnString.charAt(returnString.length()-1) == chr.charAt(0)))  {
+            if ((i > 0) && (returnString[j-1] == chr))  {
                 i--;
                 continue;
             }
-            returnString += chr;
+            returnString[j] = chr;
+            j++;
             numOld = num;
         }
         return returnString;
     }
 
-    String encrypt(String inputString, int requiredLength) {
-        int inputStringLength = inputString.length();
-        byte[] inputHashArr = hash(inputString);
-        // convert byte digest to hex string
-        StringBuilder hexString = new StringBuilder();
-        for (byte b : inputHashArr) {
-            String hex = Integer.toHexString(0xFF & b);
-            if (hex.length() == 1) {
-                hexString.append('0');
-            }
-            hexString.append(hex);
-        }
-        String inputHash  = hexString.toString();
-        int inputHashLength = inputHash.length();
-        // Calculate the offset of the first character.
-        int last = 0;
-        if (inputStringLength > inputHashLength) inputStringLength = inputHashLength;
-        for (int i = 0; i < inputStringLength; i++) {
-            last = (inputHash.charAt(i) + 31 * last) % 59;
-        }
-        // Grow input_string if it's shorter than required length
-        while (inputHashLength < requiredLength) {
-            inputHash += inputHash;
-            inputHashLength += inputHashLength ;
-        }
-        inputHash = inputHash.substring(0, requiredLength);
-        // Generate the encrypted string.
-        String returnString =  "";
-        for(int i = 0; i < requiredLength; i++) {
-            returnString += symbolsArr[last = (i + last + inputHash.charAt(i)) % symbolsLength];
-        }
-        return returnString;
-    }
 }

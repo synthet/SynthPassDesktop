@@ -27,14 +27,16 @@ public class PassForm extends JFrame {
 
     private final PassGenerator passGenerator = new PassGenerator();
     private String resultString = "password";
-    private String masterPassword = "";
-    private String domainName = "";
+    private char[] masterPassword;
+    private char[] domainName;
+
+    private int iter = 0;
 
     public PassForm() {
         super("SynthPass");
 
         setContentPane(rootPanel);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         pack();
         setLocationRelativeTo(null);
         //centreWindow(this);
@@ -43,8 +45,8 @@ public class PassForm extends JFrame {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                masterPassword = passField.getText();
-                domainName = domainField.getText();
+                masterPassword = passField.getPassword();
+                domainName = domainField.getText().toCharArray();
                 passLabel.setText(gen());
             }
         });
@@ -55,13 +57,16 @@ public class PassForm extends JFrame {
 
 
     private String gen() {
-        String inputString = masterPassword + domainName;
+        iter = 0;
         do {
-            resultString = passGenerator.synthEncrypt(inputString,
+            iter++;
+            char[] resultArray = passGenerator.synthEncrypt(masterPassword, domainName,
                     PassGenerator.PassRules.generatedPasswordLength);
-            inputString = resultString;
+            masterPassword = resultArray;
+            domainName = "".toCharArray();
+            resultString = String.copyValueOf(resultArray);
 
         } while (!passGenerator.validate(resultString));
-        return resultString;
+        return resultString + " |" + String.valueOf(iter);
     }
 }
