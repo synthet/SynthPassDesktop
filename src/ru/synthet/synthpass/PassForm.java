@@ -38,6 +38,8 @@ public class PassForm extends JFrame {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         pack();
         setLocationRelativeTo(null);
+        setResizable(false);
+        setAlwaysOnTop(true);
 
         genButton.addActionListener(new ActionListener() {
             @Override
